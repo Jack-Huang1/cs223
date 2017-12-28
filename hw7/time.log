@@ -13,7 +13,4 @@ Date	Time Started	Time Spent	Work completed
 
 I discussed my solution with: N/A
 
-Biggest Challenge: The hardest part of this p-set for me was properly cropping substrings in my DP algorithm to check in the dictionary.
-At first, I was trying to allocate memory to temporarily store the substrings, but then I realized I can just use the brackets method and run a for loop to check the word.
-After that, printing for both two words and DP was a bit challenging for me too because splitting words into substrings was really complicated for me.
-After figuring out that though, finishing the p-set was fairly straight forward because most of the work after that was just edge casing.
+Biggest Challenge: The hardest part of this p-set for me was properly cropping substrings in my DP algorithm to check in the dictionary. At first, I was trying to allocate memory to temporarily store the substrings, but then I realized I can just use the brackets method and run a for loop to check the word. After that, printing for both two words and DP was a bit challenging for me too because splitting words into substrings was really complicated for me. After figuring out that though, finishing the p-set was fairly straight forward because most of the work after that was just edge casing.
