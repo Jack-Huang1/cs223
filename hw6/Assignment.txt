@@ -1,0 +1,133 @@
+In this assignment, we develop graph algorithms. As an illustrative example, we can treat an office building as a graph. Each room is a node (or vertex) on the graph. Points in the hallways outside rooms and in stairways are also nodes on the graph. Each node has a set of adjacent nodes, its neighbors, implicitly connected by edges. The sample building is an undirected graph. That is, you can go both ways along an edge. If you can go from room x to room y, then you can go from room y to room x. (This is not true of all buildings. Some doors lock behind you. That type of building would be a directed graph. Your program should handle that case as well.)
+Here is a sample four story building:
+
+    R41 R42 R43 R44 R45 R46 R47 R48 
+H40 H41 H42 H43 H44 H45 H46 H47 H48 H49
+
+S30 R31 R32 R33 R34 R35 R36 R37 R38 S39
+H30 H31 H32 H33 H34 H35 H36 H37 H38 H39
+
+S20 R21 R22 R23 R24 R25 R26 R27 R28 S29
+H20 H21 H22 H23 H24 H25 H26 H27 H28 H29
+
+S10 R11 R12 R13 R14 R15 R16 R17 R18 S19
+H10 H11 H12 H13 H14 H15 H16 H17 H18 H19
+For example, R41 is a room on the fourth floor. Its neighbor is H41, and possibly R42, if there is a connecting door.
+
+H41 is a hallway node, with neighbors H40, R41, and H42.
+
+Oh yes, I forgot to mention: the building is on fire.
+
+For this assignment, you will create a program:
+
+    Fire -room value [-dfs | -bfs | -best | -conn | -dir]
+that reads standard input and writes to standard output. It reads the room graph from standard input. It then searches for the fire in the building, starting at the specified room, using the given search algorithm[s]. The above building graph is available at /c/cs223/hw6/rooms Here is a sample room graph input:
+
+H10 70  H11 S10
+H11 70  H10 R11 H12
+H12 70  H11 R12 H13
+There is one room per line. Each line is a sequence of tokens separate by spaces. (strtok anyone?) The first token is the room identifier. The second token is the temperature in the room (in degrees fahrenheit). A room is on fire if its temperature is above 400 degrees. The remaining tokens are the neighbors. Here is the struct you should use for rooms:
+
+struct room {
+  char room[4];
+  int temp;
+  int ncount;
+  int visited;
+  char neighbors[10][4];
+};
+There are several things to notice. First, room identifiers will not exceed 3 characters (plus null termination). Second, a node will have no more than 10 neighbors. This seems reasonable for a building. In graph parlance, the room graph is of degree 10, at most.
+We have implemented this assignment in JavaScript. See
+
+http://zoo.cs.yale.edu/classes/cs223/current/lectures/code/hw6/fire.html
+
+The JavaScript code is http://zoo.cs.yale.edu/classes/cs223/current/lectures/code/hw6/fire.js
+
+On the web page, you may select one of three search algorithms:
+
+depth-first
+breadth-first
+best-first
+You also select the room from which to start the search, using the drop-down list. This selection triggers the search. (It is an onChange event.)
+DFS visits the child vertices before visiting the sibling vertices; that is, it traverses the depth of any particular path before exploring its breadth. A stack (often the program's call stack via recursion) is generally used when implementing the algorithm.
+
+BFS visits the neighbor vertices before visiting the child vertices, and a queue may be used in the search process. This algorithm is often used to find the shortest path from one vertex to another. You can implement the queue with a MIN-HEAP where the key is the order in which the neighbors are added to the heap. That way, the first-in, first-out ordering (FIFO) will be maintained. We provide you with the header file: heap.h. You will implement that interface in heap.c.
+
+Best-first search is similar to BFS, except that it uses a heuristic to select the next node to visit. That is where the temperature comes in. If you are trying to find the fire and there are five possible rooms to explore, you select the hottest one. In practice, this usually means that you order the rooms from hottest to coolest. However, we are going to try our newest trick data structure: the heap. You will keep the set of neighbors to visit in a heap, such that the root of the heap is the hottest room in the bunch. Now, you might think that you need to use a MAX-HEAP instead of a MIN-HEAP. However, you already implemented a MIN-HEAP for BFS. You can use that same code for the temperature MAX-HEAP by using the negative temperature as the key. Then the minimum value (root of the heap) will be the room with the highest temperature. Pretty cool, eh?
+
+In addition to the three search routines, you will implement two more options: -conn and -dir. The -conn option will test that the graph is connected. That is, if you start at any node, you can reach all the other nodes. The -dir option will determine if the graph is directed or undirected.
+
+If a command argument occurs multiple times, there is no change in behavior. If the room argument occurs multiple times, only the last one will be honored. If the other arguments are present multiple times, the actual order will be depth, breadth, best, connected, directed.
+
+All temperature values are decimal integers. That allows you to use the C library function atoi().
+
+Also, there will be no line splices in the input. That allows you to remain sane. Lines of input will not exceed 1024 characters.
+
+All input files will terminate with a newline.
+
+The room graph need not be a realistic building. A room on the first floor may have neighbors on the fifth floor. There may not be hallways or stairways. The graph will just be a graph. The room and building metaphor is provided to give you a concrete way of visuallizing the assignment. However, your program should be able to handle any type of graph: connected or unconnected, directed or undirected.
+
+Using the struct for rooms above, you will implement the graph with a dictionary (hash table). We will provide the code (based on Aspnes's dictionary.) See /c/cs223/hw6/dict.c and dict.h. We will also provide a Makefile. You are NOT allowed to change these files. The test program will enforce that assumption.
+
+Room identifiers will always be upper case.
+
+You should verify the validity of neighbors before starting the search or connect process. That is, the input file might have a line
+
+R10 70 R11 H10 X12
+where the room X12 does not exist. This is an error, but not fatal.
+Also, there may be duplicate entries for rooms. You might have
+
+R10 70 R11 H10 R12
+and later on in the input file:
+R10 70 R11 H10
+In that case, the latest version will override the others.
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. For example,
+
+   fprintf(stderr, "usage ...");
+Note that not all errors are fatal. All other output should be printed to standard output. (Use normal printf.)
+Below is some sample output.
+
+% cat a1
+A00 44 A04
+A03 554 A04
+A04 364 A00 A03
+% ./Fire -room A04 < a1
+Starting depth first search: A04 A00 A03  SUCCESS!
+% ./Fire -room A04 -bfs < a1
+Starting breadth first search: A04 A00 A03  SUCCESS!
+% ./Fire -room A04 -best < a1
+Starting best first search: A04 A03  SUCCESS!
+% ./Fire -room A04 -conn < a1
+Graph is connected.
+% ./Fire -room A04 -dir < a1
+Graph is undirected.
+% ./Fire -room A04 -dir -conn -dfs -bfs -best < a1
+Starting depth first search: A04 A00 A03  SUCCESS!
+Starting breadth first search: A04 A00 A03  SUCCESS!
+Starting best first search: A04 A03  SUCCESS!
+Graph is connected.
+Graph is undirected.
+And another graph.
+% cat a2
+A03 424 A01 A03 
+A00 13 A03 A00 A04 A04 A04 A04 A03 A04 
+A01 51 A04 A02 A04 
+A04 423 A03 A02 A02 A00 A00 A00 A03 A04 A01 
+A04 94 A04 A03 A02 A01 A04 A01 A00 A04 A01 A02 
+% ./Fire -room A04 -dir -conn -dfs -bfs -best < a2
+Room A04 already in graph.  Replacing it.
+Warning: room A01 has neighbor A02 which is not in the dictionary.
+Warning: room A04 has neighbor A02 which is not in the dictionary.
+Starting depth first search: A04 A03  SUCCESS!
+Starting breadth first search: A04 A03  SUCCESS!
+Starting best first search: A04 A03  SUCCESS!
+Graph is connected.
+Rooms A03 and A00 are not symmetric.
+Rooms A02 and A01 are not symmetric.
+Rooms A01 and A03 are not symmetric.
+Rooms A03 and A04 are not symmetric.
+Rooms A02 and A04 are not symmetric.
+Graph is directed.
+Fire should:
+Implement a heap for best first. You may also use a heap for breadth first. Use the heap.h header file.
+Have no memory leaks. You will need to use dynamic memory allocation, e.g., malloc(). You want to make sure that you free up memory before termination. Use valgrind to detect any memory problems. It will also detect other kinds of memory lapses, such as reading or writing to unauthorized parts of memory.
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
