@@ -1,0 +1,84 @@
+Write a program "Callme" that processes command line arguments specifying the number to encode as a word or the word to convert to a number. Write a program
+  Callme (digits | letters) [-debug]? [-file filename]?
+that processes the command line arguments as follows:
+digits: Finds one (actually, zero) or more words that match this number.
+word: Converts word into phone number with the same number of digits.
+-debug: optional debug flag that will print out hashing information
+-file: optional flag that specifies the dictionary file filename. The default dictionary file is /usr/share/dict/words
+The arguments must appear in the order specified.
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. For example,
+
+   fprintf(stderr, "usage ...");
+All other output should be printed to standard output. (Use normal printf.) Examples:
+
+% Callme
+usage: Callme (digits | letters) [-debug]? [-file filename]?
+
+% Callme pickups
+alphabetic: pickups => 7425877
+
+% Callme 7425877
+numeric: 7425877 => pickups
+
+% Callme 7245677
+numeric: 7245677 => sailors schloss
+
+% Callme 7245677 -debug
+Loading dictionary: /usr/share/dict/words
+Growing to size: 2048. n: 1024. Used buckets: 812. Occupancy rate: 0.79
+Growing to size: 4096. n: 2048. Used buckets: 1611. Occupancy rate: 0.79
+Growing to size: 8192. n: 4096. Used buckets: 3219. Occupancy rate: 0.79
+Growing to size: 16384. n: 8192. Used buckets: 6438. Occupancy rate: 0.79
+Growing to size: 32768. n: 16384. Used buckets: 12921. Occupancy rate: 0.79
+Growing to size: 65536. n: 32768. Used buckets: 25899. Occupancy rate: 0.79
+Word Count: 50403
+numeric: 7245677 => sailors schloss
+
+% Callme 7245677 -debug -file words
+Loading dictionary: words
+Growing to size: 2048. n: 1024. Used buckets: 812. Occupancy rate: 0.79
+Growing to size: 4096. n: 2048. Used buckets: 1611. Occupancy rate: 0.79
+Growing to size: 8192. n: 4096. Used buckets: 3219. Occupancy rate: 0.79
+Growing to size: 16384. n: 8192. Used buckets: 6438. Occupancy rate: 0.79
+Growing to size: 32768. n: 16384. Used buckets: 12921. Occupancy rate: 0.79
+Growing to size: 65536. n: 32768. Used buckets: 25899. Occupancy rate: 0.79
+Word Count: 50403
+numeric: 7245677 => sailors schloss
+
+% Callme sailors -debug
+alphabetic: sailors => 7245677
+
+% Callme 4444444
+numeric: 4444444 => ** no matches **
+
+% Callme givemeheaven
+alphabetic: givemeheaven => 448363432836
+
+
+Callme should:
+Use the online dictionary: /usr/share/dict/words or the file specified by the -file filename command line arguments.
+Implement a hash table, based on the header file: hash.h, which is provided in /c/cs223/hw3/hash.h You will write hash.c which implements the functions declared in hash.h. You should not modify hash.h. Your hash table should use linked lists to handle collisions. Note that the table expands as needed. Your hash table does not need to handle deletions. The file hash.h includes the following:
+#define INITIAL_SIZE (1024)
+#define GROWTH_FACTOR (2)
+#define MAX_LOAD_FACTOR (1)
+The initial size of the hash table should be 1024 buckets. The hash table keeps track of how many elements it contains, say n. Once n * MAX_LOAD_FACTOR == SIZE, then the table expands. The size of the new table will be SIZE * GROWTH_FACTOR.
+The table also keeps track of how many buckets are used - that is, do not contain the NULL pointer. If the -debug flag is on, the following message from hash.c will be printed to standard output every time the table expands:
+
+Growing to size: 2048. n: 1024. Used buckets: 790. Occupancy rate: 0.77
+where
+size (2048) is the size of the new expanded table,
+n (1024) is the number of elements in the old table,
+used buckets (799) indicates the number of buckets that do not contain NULL,
+occupancy rate (0.77) is simply buckets / n, which reflects the quality of your hash function. A low occupancy rate (< .5) indicates a bad hash function. You can lose points for a bad hash function.
+The -debug flag also triggers the following output from Callme.c
+Loading dictionary: /usr/share/dict/words  // name of dictionary file
+Word Count: 50403   // how many words got copied to the hashtable.
+Note that Callme does NOT load the entire dictionary -- only words equal to the length of the input number. It does not load words that contain non-alpha characters. Callme should convert the word to lowercase before adding it to the hash table, and avoid adding the same word twice.
+Also, if the command line argument is a word instead of a number, -debug has no effect. The dictionary should not be loaded and the hashtable is not created, much less expanded.
+
+There is a separate program, /c/cs223/hw3/hashtest.c, which uses this hash table implementation. Your hash.c code should work with hashtest.c. We may also use other programs to test your implementation of hash.c. Note that hashtest.c calls HashDisplay() which is likely never called in Callme.c.
+We will provide you a copy of hash.o so that you may test your Callme.c program separately from implementing the hash table.
+There is also bighashtest.c which populates the hash table with a 1000 or so random words and then displays the hash table. This gives you an idea of the kind of even distribution you want.
+Have no memory leaks. You will need to use dynamic memory allocation, e.g., malloc(). You want to make sure that you free up memory before termination. Use valgrind to detect any memory problems. It will also detect other kinds of memory lapses, such as reading or writing to unauthorized parts of memory.
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
+The file /c/cs223/hw3/words contains a subset of /usr/share/dict/words , namely, the 7 character words. You may observe that it contains entries with non-alphabetic characters as well as duplicate upper and lower case words. What is a one line UNIX command that would generate that file?
