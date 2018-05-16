@@ -1,0 +1,99 @@
+For this assignment, you will create a program:
+  Cloud [-debug | -threshold value | -preorder | -inorder | -postorder | -html | -avl]
+that reads standard input and writes to standard output. It tabulates the frequency that words occur in the input, and prints a list of those words that occur more than some threshold value.
+Here are examples using piped input from echo:
+
+% echo 'one two one two three four' | ./Cloud 
+No words seen 5 times.
+% echo 'one two one two three four' | ./Cloud -threshold 2
+The Word Cloud:
+[0] two [2]
+[1] one [2]
+% echo 'One 1 Two One. one two three four' | ./Cloud -threshold 2
+The Word Cloud:
+[0] two [2]
+[1] one [2]
+Note that the default value of threshold is 5. You can reset it with the -threshold command line argument. Also, Cloud converts uppercase letters to lowercase and ignores tokens that contain non-alpha characters, like "1" and "One."
+% echo 'One 1 Two One. one two three four' | ./Cloud -inorder
+INORDER
+**root** [1 / 3] four [1 / 0] one [2 / 2] three [1 / 0] two [2 / 1] 
+No words seen 5 times.
+% echo 'One 1 Two One. one two three four' | ./Cloud -preorder
+PREORDER
+**root** [1 / 3] one [2 / 2] four [1 / 0] two [2 / 1] three [1 / 0] 
+No words seen 5 times.
+% echo 'One 1 Two One. one two three four' | ./Cloud -postorder
+POSTORDER
+four [1 / 0] three [1 / 0] two [2 / 1] one [2 / 2] **root** [1 / 3] 
+No words seen 5 times.
+Cloud stores the input words in a binary search tree, whose root node has the key value "**root**". Cloud will print out the values of the tree (including the frequency / height in square brackets) using preorder, inorder, or postorder traversal, depending on the respective command line arguments. Note that the inorder traversal is alphabetical order. Thus, the insert process should compare keys using alphabetical order with lowercase tokens.
+If a command line argument occurs multiple times, there is no change in behavior, except that only the final threshold value is honored. If multiple traversal order arguments are present, the actual order will be preorder, inorder, and postorder.
+
+As Cloud inserts elements in the binary search tree in the order in which they occur in the input, it checks to see if the word frequency has reached the threshold value. If so, it sticks the word node on the front of a linked list: cloud.
+
+Here is an example using redirected input from a file:
+
+% cat test2
+I think that I shall never see a data structure as lovely as a tree
+% ./Cloud -threshold 2 < test2
+The Word Cloud:
+[0] a [2]
+[1] as [2]
+[2] i [2]
+Here is an example using the debug option:
+% ./Cloud -threshold 2 -debug < test2
+Input: I think that I shall never see a data structure as lovely as a tree
+Tree height: 6
+Tree size: 13
+The Word Cloud:
+[0] a [2]
+[1] as [2]
+[2] i [2]
+If you give the -html argument, Cloud generates html code:
+% cat test1
+now is the time for all good men to come to the aid of their country
+now is the time for all good men to come to the aid of their country
+now is the time for all good men to come to the aid of their country
+NOW is THE time For all good men to come to the aid of their country
+NOW1 is, THE. time* For (all) 123  good men to come to the aid of their country
+% cat test1 test1 test1 | ./Cloud -html 
+<span style="font-size: 12px"> all </span>
+<span style="font-size: 12px"> time </span>
+<span style="font-size: 12px"> is </span>
+<span style="font-size: 12px"> now </span>
+<span style="font-size: 15px"> country </span>
+<span style="font-size: 15px"> their </span>
+<span style="font-size: 15px"> of </span>
+<span style="font-size: 15px"> aid </span>
+<span style="font-size: 15px"> come </span>
+<span style="font-size: 15px"> men </span>
+<span style="font-size: 15px"> good </span>
+<span style="font-size: 15px"> for </span>
+<span style="font-size: 30px"> to </span>
+<span style="font-size: 27px"> the </span>
+which is rendered as:
+all time is now country their of aid come men good for to the
+Here is a more impressive example.
+
+% ./Cloudx -html < alice.txt > alice.html
+We convert the entire text of Alice In Wonderland into a word cloud
+Note that all words are separated by spaces. That allows you to use the C library function strtok(). You should ignore tokens containing punctuation or digits.
+
+Also, all threshold values are integers. That allows you to use the C library function atoi().
+
+Also, there will be no line splices in the input. That allows you to remain sane. Lines of input will not exceed 1024 characters.
+
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. For example,
+
+   fprintf(stderr, "usage ...");
+Note that not all errors are fatal. All other output should be printed to standard output. (Use normal printf.)
+You may use global variables for threshold, debugflag, and cloud. Note that these are NOT defined in btree.h.
+
+Cloud should:
+
+Implement a binary search tree. This is where you will store the words from the text. The header file btree.h is provided in /c/cs223/hw5. Implement btree.c. Do not modify btree.h Your code should refer to the btree.h in the hw5 directory:
+  #include "/c/cs223/hw5/btree.h"
+There are separate programs, /c/cs223/hw5/btreetest.c and /c/cs223/hw5/btreetestargs.c, which use this btree implementation. Your btree.c code should work with btreetest.c and btreetestargs.c. We may also use other programs to test your implementation of btree.c.
+We will provide you a copy of btree.o so that you may test your Cloud.c program separately from implementing the btree.
+Have no memory leaks. You will need to use dynamic memory allocation, e.g., malloc(). You want to make sure that you free up memory before termination. Use valgrind to detect any memory problems. It will also detect other kinds of memory lapses, such as reading or writing to unauthorized parts of memory.
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
