@@ -1,0 +1,109 @@
+For this assignment, you will create a program:
+    Words [-dict filename] [-debug]
+that reads standard input and writes to standard output. It first loads a word file (or dictionary) into a hash table, as you did in hw3. In fact, we will give you the hash table code from hw3 (hash.c, hash.h, and Makefile). The word file will have one word per line. When you load the words into the hash table, you will convert them to lower case and ignore any words containing non-alphabetic characters, such as digits or punctuation.
+The default word file is simply "words" in the current directory. This should make it simpler to test your code without having to load 400,000 words from the online dictionary every time you run your code. However, your program should be able to process the online dictionary, if given as a command line argument.
+
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. For example,
+
+   
+   fprintf(stderr, "usage ...");
+Note that not all errors are fatal. All other output should be printed to standard output. (Use normal printf.)
+There are many ways to approach this problem. For starters, you might try to see if you can break the string into two words. You simply divide the string into a left and right substring, and check to see if both left and right parts are in the dictionary. We will call this the two word solution. This is pretty efficient, but also limited.
+
+Another approach is depth first search. You find the first prefix that is a word, and then recursively try to segment the remainder of the string. This is a general solution, but not very efficient. For long strings, you will likely perform the same calculation repeatedly.
+
+That should ring a bell in your head: dynamic programming. You want your program to avoid repetitive calculations.
+
+The current solution, Wordsx, implements both the two word and the DP approaches, using the following DP algorithm:
+
+Initialize an array matrix[strlen(word) + 1] = -1. Let matrix[strlen(word)] = 0. -1 shall be a sentinel value signifying that there is not a valid word split starting at this index onwards.
+Let i be the index moving backwards from the end of the word to 0. It represents the start of a word split. For each index i, check if there is a valid word split iterating from word[i, i] to word[i, strlen(word)].
+If there is a valid split, let j be the index of the end of that valid split.
+If the substring[i, j] is a valid word and matrix[j + 1] != -1 (e.g. there is a sequence of valid word splits from j + 1 to the end of the string. Given that i iterates backwards from the end of the word, if there was a valid split at starting at j + 1, we would have already found it!), let matrix[i] = j + 1, e.g. the index of the start of the next word.
+Below is some sample output.
+$ cat words 
+I
+a
+am
+ace
+mace
+ma
+mama
+for
+ever
+forever
+car
+rot
+carrot
+breaking
+break
+up
+is
+hard
+to
+do
+$ ./Words
+mama
+Two words: SUCCESS: ma ma.  
+DP: SUCCESS: mama 
+---
+mamama
+Two words: SUCCESS: ma mama.  mama ma.  
+DP: SUCCESS: mama ma 
+---
+forevercarrot
+Two words: SUCCESS: forever carrot.  
+DP: SUCCESS: forever carrot 
+---
+Iamace
+Two words: FAILURE
+DP: SUCCESS: i am ace 
+---
+xxxx
+Two words: FAILURE
+DP: FAILURE
+---
+notindictionary
+Two words: FAILURE
+DP: FAILURE
+---
+Note that at this point, Words prints all possible two word segmentations, but not all possible segmentations.
+Here is from the algorithm example, including the debug flag.
+
+$ ./Words -debug
+Loading dictionary: words
+Word count: 20
+breakingupishardtodo
+Input: 'breakingupishardtodo'
+Two words: FAILURE
+DP: SUCCESS: breaking up is hard to do 
+8 -1 -1 -1 -1 -1 -1 -1 10 -1 12 -1 16 -1 -1 -1 18 -1 20 -1 
+---
+The debug flag causes the program to print out the array and other information.
+We can also feed the test words from a file using redirected input.
+
+$ cat test
+mama
+mamama
+breakingupishardtodo
+$ ./Words -debug < test
+Loading dictionary: words
+Word count: 20
+Input: 'mama'
+Two words: SUCCESS: ma ma.  
+DP: SUCCESS: mama 
+4 3 4 4 
+---
+Input: 'mamama'
+Two words: SUCCESS: ma mama.  mama ma.  
+DP: SUCCESS: mama ma 
+4 3 6 5 6 6 
+---
+Input: 'breakingupishardtodo'
+Two words: FAILURE
+DP: SUCCESS: breaking up is hard to do 
+8 -1 -1 -1 -1 -1 -1 -1 10 -1 12 -1 16 -1 -1 -1 18 -1 20 -1 
+---
+Words should:
+Have no memory leaks. You will need to use dynamic memory allocation, e.g., malloc(). You want to make sure that you free up memory before termination. Use valgrind to detect any memory problems. It will also detect other kinds of memory lapses, such as reading or writing to unauthorized parts of memory.
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
