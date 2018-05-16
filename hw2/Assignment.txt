@@ -1,0 +1,100 @@
+Write a program "Pack" that processes command line arguments specifying the items to be packed and the algorithm(s) to use. The objective of the program is to pack all the items in the fewest possible bins.
+You are given N items, of sizes s1, s2, ..., sN. All sizes are integers such that 0 < si <= 100. You have an infinite supply of bins of size 100. The goal is to pack the items in as few bins as possible.
+
+EXAMPLE:	20, 50, 40, 70, 10, 30, 80
+The optimal packing would be three bins, such as:
+Bin 1: 20, 80
+Bin 2: 50, 40, 10
+Bin 3: 70, 30
+Each bin is completely full.
+Write a program
+
+  Pack [size]* [-next | -first | -best | -ffd | -bfd | -optm]+ -trace*
+that performs various assignments of items to bins and prints the required number of bins. Here
+[size]* is a sequence of zero or more sizes, such that 0 < size <= 100
+[-next | -first | -best | -ffd | -bfd | -optm]* is a sequence of one or more flags (each either -next or -first or -best or -ffd or -bfd or -optm) that specify which algorithm to perform.
+The flags have the following meanings:
+-next: online processing in order. see if the next item fits in the same bin as the last item. If not, then start a new bin.
+-first: online processing in order. check all previous bins and use first one that fits. If no fit, then start a new bin.
+-best: online processing in order. check all previous bins and use the one that has the tightest fit. If no fit, then start a new bin.
+-ffd: First fit decreasing, offline processing. Sort items in decreasing order, then apply first fit algorithm.
+-bfd: Best fit decreasing, offline processing. Sort items in decreasing order, then apply best fit algorithm.
+-optm: Optimal bin packing, per the paper by Korf (a variant of bfd). You may alternatively use the backtracking algorithm given above. This is an extra credit option worth at most 3 points out of 40. If you do not implement optm, merely use bfd and print a message "(using bfd)". NOTE: Packx does not implement Korf or backtracking.
+-trace: Flag used for debugging. If present, will print a line of output whenever an item is put in a bin. See examples below. If -trace is set, it applies to all algorithms on the command line. -trace itself may occur multiple times, but it is either off or on. Note: Trace also prints a line to stdout identifying the algorithm it is tracing. If an algorithm appears multiple times in the command line, the trace output occurs only once. If multiple algorithms are traced, the output order is next, first, best, ffd, bfd, optm, which might be different from the order of flags in the command line.
+Pack prints the minimum number of bins using a statement like
+   printf ("%s %d\n", flagname, minbins);
+where flagname is the current flag. When more than one flag is specified, Pack prints the corresponding minimum bin requirements on separate lines in the order specified on the command line. Flags may be specified more than once. Note that the item sizes must all PRECEDE the first function or trace flag on the command line.
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. The specific content of the error message will not be tested -- just that the error message is printed to standard error.) For example,
+
+   fprintf(stderr, "usage ...");
+All other output should be printed to standard output. (Use normal printf.) Examples:
+% Pack
+usage: Pack [sizes]* [-next | -first | -best | -ffd | -bfd | -optm]+ -trace*
+
+% Pack 20 50 -40 70 10 30 80 -ffd
+Fatal error: Invalid size: -40
+
+% Pack 20 150 -40 70 10 30 80 -ffd
+Fatal error: Invalid size: 150
+
+% Pack 20 50 40 70 10 30 80 -bogus
+Fatal error: bad argument: -bogus
+
+% Pack 20 50 40 70 10 30 80 
+Fatal error: no algorithm specified.
+
+% Pack 20 50 40 70 10 30 80 -first 4
+Fatal error: Size option out of order: 4
+
+% Pack 20 50 40 70 10 30 80 -first -next
+-first: 4
+-next: 5
+
+% Pack -ffd
+-ffd: 0
+
+% Pack 20 50 40 70 10 30 80 -ffd -bfd -next
+-ffd: 3
+-bfd: 3
+-next: 5
+
+% Pack 20 50 40 70 10 30 80 -best -next -first
+-best: 4
+-next: 5
+-first: 4
+
+% Pack 20 50 40 70 10 30 80 -next -first
+-next: 5
+-first: 4
+
+% Pack 20 50 40 70 10 30 80 -bfd -trace
+Trace -bfd
+arg: 0 val: 80 bin: 0 total: 80
+arg: 1 val: 70 bin: 1 total: 70
+arg: 2 val: 50 bin: 2 total: 50
+arg: 3 val: 40 bin: 2 total: 90
+arg: 4 val: 30 bin: 1 total: 100
+arg: 5 val: 20 bin: 0 total: 100
+arg: 6 val: 10 bin: 2 total: 100
+-bfd: 3
+
+% Pack 20 50 40 70 10 30 80 -best -trace
+Trace -best
+arg: 0 val: 20 bin: 0 total: 20
+arg: 1 val: 50 bin: 0 total: 70
+arg: 2 val: 40 bin: 1 total: 40
+arg: 3 val: 70 bin: 2 total: 70
+arg: 4 val: 10 bin: 0 total: 80
+arg: 5 val: 30 bin: 2 total: 100
+arg: 6 val: 80 bin: 3 total: 80
+-best: 4
+
+% Pack 10 20 30 40 50 -bfd -optm
+-bfd: 2 
+-optm: 2 (using bfd)
+Moreover, Pack should
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
+Not make ANY assumptions as to the maximum length of the input
+Not use any global variables.
+Not execute a bin packing algorithm more than once, even if it appears multiple times on the command line.
+As stated above, when more than one flag is specified, Pack prints the corresponding minimum bin requirements on separate lines in the order specified on the command line. Flags may be specified more than once.
