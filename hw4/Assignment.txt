@@ -1,0 +1,101 @@
+Write a program
+  Calc [-debug]?
+that reads standard input and writes to standard output. Here are some sample lines of input using standard input from the terminal:
+% ./Calcx
+1 + 2
+Input: 1 + 2
+Result: 3.00
+3 * ( 9 * 9 )
+Input: 3 * ( 9 * 9 )
+Result: 243.00
+1 + 2 + 3
+Input: 1 + 2 + 3
+Result: 6.00
+1.5 * 3.5 - ( 7 * 8 )
+Input: 1.5 * 3.5 - ( 7 * 8 )
+Result: -50.75
+( ( 3 * 4 ) + ( 4 * 5 ) ) - 8
+Input: ( ( 3 * 4 ) + ( 4 * 5 ) ) - 8
+Result: 24.00
+Here are examples using piped input from echo:
+% echo '123 + 456' | ./Calcx
+Input: 123 + 456
+Result: 579.00
+
+% echo '123 + (456 - 3 )' | ./Calc
+Input: 123 + (456 - 3 )
+Fatal Error. Bad token: (456
+Here is an example using redirected input from a file:
+% cat test
+123 + 456
+% ./Calcx < test
+Input: 123 + 456
+Result: 579.00
+Here are examples using the debug option:
+% echo '123 + 456' | ./Calcx -debug
+Input: 123 + 456
+Stack: size: 0 :
+Token:123: type: 0 value: 123.00
+Stack: size: 0 :
+Token:+: type: 1 value: 0.00
+Stack: size: 1 :[1 + 0.0] 
+Token:456: type: 0 value: 456.00
+Stack: size: 1 :[1 + 0.0] 
+OUTPUT:
+Stack: size: 0 :
+Token:123: type: 0 value: 123.00
+Stack: size: 1 :[0 123 123.0] 
+Token:456: type: 0 value: 456.00
+Stack: size: 2 :[0 456 456.0] [0 123 123.0] 
+Token:+: type: 1 value: 0.00
+Result: 579.00
+
+% echo '1 + 2 * 3' | ./Calcx -debug
+Input: 1 + 2 * 3
+Stack: size: 0 :
+Token:1: type: 0 value: 1.00
+Stack: size: 0 :
+Token:+: type: 1 value: 0.00
+Stack: size: 1 :[1 + 0.0] 
+Token:2: type: 0 value: 2.00
+Stack: size: 1 :[1 + 0.0] 
+Token:*: type: 2 value: 0.00
+Stack: size: 2 :[2 * 0.0] [1 + 0.0] 
+Token:3: type: 0 value: 3.00
+Stack: size: 2 :[2 * 0.0] [1 + 0.0] 
+OUTPUT:
+Stack: size: 0 :
+Token:1: type: 0 value: 1.00
+Stack: size: 1 :[0 1 1.0] 
+Token:2: type: 0 value: 2.00
+Stack: size: 2 :[0 2 2.0] [0 1 1.0] 
+Token:3: type: 0 value: 3.00
+Stack: size: 3 :[0 3 3.0] [0 2 2.0] [0 1 1.0] 
+Token:*: type: 2 value: 0.00
+Stack: size: 2 :[0 3 6.0] [0 1 1.0] 
+Token:+: type: 1 value: 0.00
+Result: 7.00
+The StackPrint function (declared in stack.h) prints out the number of elements in the stack and the contents as a tuple [type string value]
+The type is an enumerated type defined in stack.h. For operators, the string is the operator and the value is 0. For numbers, the string is numeric string and the value is the value of the number.
+
+stack.h defines the stackT struct containing both top and count integer variables. Depending on your implementation, they may or may not be the same.
+
+Note that all tokens are separated by spaces. That allows you to use the C library function strtok().
+
+Also, all numbers are decimal - both integers and floating point. That allows you to use the C library function strtod().
+
+Also, there will be no line splices in the input. That allows you to remain sane. Lines of input will not exceed 1024 characters.
+
+All error output (usage and "Fatal Error" messages below) should be printed to standard error. For example,
+
+   fprintf(stderr, "usage ...");
+All other output should be printed to standard output. (Use normal printf.)
+Calc should:
+
+Implement a stack. You will need a stack for the infix to postfix process as well as for evaluating the RPN. The header file stack.h is provided in /c/cs223/hw4. Implement stack.c. Do not modify stack.h - the code you submit should have the following line:
+#include "/c/cs223/hw4/stack.h"
+There is a separate program, /c/cs223/hw4/stacktest.c, which uses this stack implementation. Your stack.c code should work with stacktest.c. We may also use other programs to test your implementation of stack.c.
+We will provide you a copy of stack.o so that you may test your Calc.c program separately from implementing the stack.
+Have no memory leaks. You will need to use dynamic memory allocation, e.g., malloc(). You want to make sure that you free up memory before termination. Use valgrind to detect any memory problems. It will also detect other kinds of memory lapses, such as reading or writing to unauthorized parts of memory.
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
+NOT evaluate RPN directly. The program only works on infix notation by converting to RPN. It does not evaluate RPN.
