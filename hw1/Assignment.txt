@@ -1,0 +1,67 @@
+Write a filter "Total" that reads a text from the standard input, keeps a running total of the integers, and prints that total to standard output. You do not need to handle fractions or scientific notation. These will not be tested. It should process integers in decimal, binary, octal, and hexadecimal.
+Here are some examples of Total in action.
+
+% echo 23 -20 | ./Total
+Total: 3
+% echo 023 -020 | ./Total
+Total: 3
+% echo 023 020 | ./Total
+Total: 35
+% echo 0X1A -0xa | ./Total
+Total: 16
+% echo 0B101 077 | ./Total
+Total: 68
+The staff solution includes a debug option which prints out intermediate results. The debug option is, well, optional. You will not be tested on it.
+% cat t1
+-9 "4 56" 011 0b11 0x11 "3 \" 4" 5
+% ./Total -debug < t1
+n: -9 total: -9
+n: 9 total: 0
+n: 3 total: 3
+n: 17 total: 20
+n: 5 total: 25
+Total: 25
+% cat t2
+---9
+0\
+b11
+0b\
+11
+0\
+xff
+0x\
+ff
+0\
+77
+-\
+x
+% ./Total -debug < t2
+n: -9 total: -9
+n: 3 total: -6
+n: 3 total: -3
+n: 255 total: 252
+n: 255 total: 507
+n: 63 total: 570
+Total: 570
+Finally, note that you can pipe the output from another program into Total.
+% echo sbs5 cs223ta | ./Total
+Total: 228
+% ll
+total 40
+-rw-r--r-- 1 sbs5 cs223ta 5582 Jan  3 11:00 Makefile
+-rw-rw-r-- 1 sbs5 cs223ta   35 Jan  3 12:21 t1
+-rw-rw-r-- 1 sbs5 cs223ta   44 Jan  3 11:56 t2
+-rwxrwxr-x 1 sbs5 cs223ta 9040 Jan  3 12:10 Total
+-rw-rw-r-- 1 sbs5 cs223ta 2508 Jan  3 12:10 Total.c
+-rw-rw-r-- 1 sbs5 cs223ta 4152 Jan  3 12:10 Total.o
+% ll | ./Total
+Total: 22973
+If a number occurs inside a string delimited by double quotes, it should NOT be tallied. Note that an escaped double quote does not terminate a string.
+If a number occurs inside a comment, it SHOULD be tallied.
+Handle line splices (i.e., when finding a backslash immediately followed by a newline in the input stream, behave as if they did not appear; note that splices do not nest and are recognized before any other processing takes place).
+Fail "gracefully" (i.e., neither go into an infinite loop nor cause a memory dump) if any of the assumptions above is violated.
+Total should not make ANY assumptions as to the maximum length of a line.
+Do not use any global variables.
+However, you can assume that no integer will be larger than the largest long (MAX_LONG per limits.h). That value is
+  // MAX_LONG: 9223372036854775807
+which is nearly 20 decimal digits. Note that octal or binary numbers could have more digits. The negative limit is similar. You do not have to handle arithmetic overflows or underflows.
